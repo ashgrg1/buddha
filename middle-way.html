@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#22332C">
+<title>The Middle Way — one kept promise at a time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9EDE7;        /* still morning mist */
+    --surface:#FBFAF5;      /* soft card */
+    --ink:#22332C;          /* deep pine, primary text */
+    --ink-soft:#4C5A53;     /* muted text */
+    --ink-faint:#8A928B;    /* faintest text */
+    --amber:#C0862B;        /* candle flame — the promise, warmth */
+    --amber-deep:#A06E1E;
+    --sage:#6E9A7A;         /* kept — living, growing */
+    --sage-soft:#DCE7DE;
+    --stone:#C3C0B7;        /* missed — neutral, just data */
+    --line:#D6DAD2;
+    --shadow:0 1px 2px rgba(34,51,44,.06), 0 8px 24px rgba(34,51,44,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.55;
+    padding:22px 16px 60px;
+    display:flex;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%;max-width:560px}
+
+  /* ---- header ---- */
+  header{text-align:center;margin-bottom:26px}
+  .mark{
+    width:38px;height:38px;margin:0 auto 12px;display:block;
+  }
+  .date{
+    font-size:.82rem;color:var(--ink-faint);letter-spacing:.02em;
+  }
+  .hello{
+    font-family:'Spectral',Georgia,serif;
+    font-size:1.15rem;color:var(--ink-soft);font-weight:400;margin-top:2px;
+  }
+
+  /* ---- promise (hero) ---- */
+  .promise-card{
+    background:var(--surface);border-radius:20px;padding:28px 24px 26px;
+    box-shadow:var(--shadow);text-align:center;margin-bottom:18px;
+    border:1px solid var(--line);
+  }
+  .promise-label{
+    font-size:.78rem;color:var(--ink-faint);margin-bottom:14px;
+  }
+  .promise-text{
+    font-family:'Spectral',Georgia,serif;
+    font-size:1.55rem;line-height:1.3;font-weight:500;color:var(--ink);
+    cursor:text;padding:6px 8px;border-radius:10px;
+    outline:none;min-height:1.3em;transition:background .2s;
+    word-break:break-word;
+  }
+  .promise-text:hover{background:rgba(192,134,43,.06)}
+  .promise-text:focus{background:rgba(192,134,43,.09);box-shadow:0 0 0 2px rgba(192,134,43,.3)}
+  .promise-text.empty::before{content:'Tap to write your one small promise';color:var(--ink-faint);font-style:italic;font-weight:400}
+  .promise-edit-hint{font-size:.72rem;color:var(--ink-faint);margin-top:8px;height:1em}
+
+  .examples{margin-top:14px;text-align:left}
+  .examples summary{
+    font-size:.8rem;color:var(--amber-deep);cursor:pointer;text-align:center;
+    list-style:none;padding:6px;
+  }
+  .examples summary::-webkit-details-marker{display:none}
+  .examples summary:hover{text-decoration:underline}
+  .example-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .example{
+    background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:9px 12px;font-size:.86rem;color:var(--ink-soft);cursor:pointer;
+    text-align:left;transition:border-color .15s,background .15s;
+  }
+  .example:hover,.example:focus{border-color:var(--sage);background:var(--sage-soft);outline:none}
+
+  /* ---- action buttons ---- */
+  .actions{display:flex;gap:10px;margin-top:22px}
+  .btn{
+    flex:1;border:none;border-radius:13px;padding:15px 12px;font-size:.98rem;
+    font-family:inherit;font-weight:600;cursor:pointer;transition:transform .12s,box-shadow .2s,background .2s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn-keep{background:var(--amber);color:#fff;box-shadow:0 2px 10px rgba(192,134,43,.28)}
+  .btn-keep:hover{background:var(--amber-deep)}
+  .btn-miss{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+  .btn-miss:hover{border-color:var(--stone);background:rgba(0,0,0,.02)}
+  .btn.chosen{outline:2px solid var(--ink);outline-offset:2px}
+
+  .response{
+    margin-top:16px;font-family:'Spectral',Georgia,serif;font-size:1.02rem;
+    line-height:1.45;color:var(--ink-soft);min-height:0;overflow:hidden;
+    max-height:0;opacity:0;transition:max-height .35s ease,opacity .35s ease,margin .35s ease;
+  }
+  .response.show{max-height:200px;opacity:1;margin-top:16px}
+  .response .undo{
+    display:inline-block;margin-top:8px;font-family:'Inter',sans-serif;
+    font-size:.78rem;color:var(--amber-deep);background:none;border:none;cursor:pointer;
+  }
+  .response .undo:hover{text-decoration:underline}
+
+  /* ---- section card ---- */
+  .card{
+    background:var(--surface);border-radius:18px;padding:22px 22px 20px;
+    box-shadow:var(--shadow);margin-bottom:18px;border:1px solid var(--line);
+  }
+  .card h2{
+    font-family:'Spectral',Georgia,serif;font-weight:600;font-size:1.12rem;
+    margin-bottom:4px;color:var(--ink);
+  }
+  .card .sub{font-size:.82rem;color:var(--ink-faint);margin-bottom:16px}
+
+  /* ---- chain ---- */
+  .chain-stats{display:flex;gap:26px;margin-bottom:18px}
+  .stat .num{font-family:'Spectral',serif;font-size:2rem;font-weight:600;color:var(--sage);line-height:1}
+  .stat .num.zero{color:var(--ink-faint)}
+  .stat .cap{font-size:.74rem;color:var(--ink-faint);margin-top:3px}
+  .dots{display:grid;grid-template-columns:repeat(14,1fr);gap:7px}
+  .dot{aspect-ratio:1;border-radius:50%;background:transparent;border:1.5px solid var(--line)}
+  .dot.kept{background:var(--sage);border-color:var(--sage)}
+  .dot.missed{background:var(--stone);border-color:var(--stone);opacity:.55}
+  .dot.today{box-shadow:0 0 0 2px var(--amber)}
+  .chain-note{
+    margin-top:16px;font-size:.85rem;color:var(--ink-soft);
+    background:var(--paper);border-radius:10px;padding:11px 13px;line-height:1.4;
+  }
+
+  /* ---- wave timer ---- */
+  .wave-intro{font-size:.9rem;color:var(--ink-soft);margin-bottom:14px}
+  .btn-wave{
+    width:100%;background:var(--ink);color:var(--paper);border:none;border-radius:13px;
+    padding:14px;font-family:inherit;font-weight:600;font-size:.95rem;cursor:pointer;transition:background .2s;
+  }
+  .btn-wave:hover{background:#2d453c}
+  .wave-panel{display:none;margin-top:16px;text-align:center}
+  .wave-panel.open{display:block}
+  .wave-reframe{
+    font-family:'Spectral',serif;font-size:1.08rem;color:var(--ink);line-height:1.4;
+    margin-bottom:18px;
+  }
+  .timer{font-family:'Spectral',serif;font-size:3.4rem;font-weight:500;color:var(--amber-deep);letter-spacing:.02em}
+  .timer.done{color:var(--sage)}
+  .wave-controls{display:flex;gap:10px;justify-content:center;margin-top:16px}
+  .wave-controls button{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    border-radius:11px;padding:10px 20px;font-family:inherit;font-weight:500;font-size:.88rem;cursor:pointer;transition:border-color .15s;
+  }
+  .wave-controls button:hover{border-color:var(--sage)}
+  .wave-done-msg{
+    display:none;margin-top:16px;font-family:'Spectral',serif;font-size:1.05rem;
+    color:var(--sage);line-height:1.4;
+  }
+  .wave-done-msg.show{display:block}
+
+  /* ---- daily line ---- */
+  .line-card{
+    background:transparent;box-shadow:none;border:none;text-align:center;
+    padding:8px 12px 4px;margin-bottom:22px;
+  }
+  .daily-line{
+    font-family:'Spectral',serif;font-style:italic;font-size:1.15rem;
+    line-height:1.5;color:var(--ink-soft);max-width:44ch;margin:0 auto;
+  }
+  .line-src{font-size:.75rem;color:var(--ink-faint);margin-top:10px}
+
+  /* ---- milestone (quiet, optional) ---- */
+  details.milestone{margin-bottom:20px}
+  details.milestone > summary{
+    font-size:.85rem;color:var(--ink-faint);cursor:pointer;text-align:center;
+    list-style:none;padding:8px;
+  }
+  details.milestone > summary::-webkit-details-marker{display:none}
+  details.milestone > summary:hover{color:var(--ink-soft)}
+  .ms-body{margin-top:8px}
+  .ms-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft);margin-bottom:8px}
+  .ms-bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+  .ms-fill{height:100%;background:var(--sage);border-radius:6px;transition:width .5s}
+  .ms-input{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:.85rem;color:var(--ink-soft)}
+  .ms-input input{
+    width:80px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:.9rem;color:var(--ink);background:var(--surface);
+  }
+  .ms-input button{
+    border:none;background:var(--sage);color:#fff;border-radius:9px;padding:8px 14px;
+    font-family:inherit;font-weight:600;cursor:pointer;
+  }
+  .ms-note{font-size:.76rem;color:var(--ink-faint);margin-top:12px;line-height:1.4}
+
+  footer{text-align:center;font-size:.74rem;color:var(--ink-faint);margin-top:8px;line-height:1.6}
+
+  @media (max-width:400px){
+    .promise-text{font-size:1.35rem}
+    .dots{gap:5px}
+    .timer{font-size:2.8rem}
+    .chain-stats{gap:18px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" stroke="#C0862B" stroke-width="1.2" opacity="0.5"/>
+      <path d="M20 11c-3 3.5-3 7.2 0 9 3-1.8 3-5.5 0-9z" fill="#6E9A7A"/>
+      <path d="M20 20c-4-1.6-7.6-.4-9 3 3.6 1.2 7.2 0 9-3z" fill="#6E9A7A" opacity="0.75"/>
+      <path d="M20 20c4-1.6 7.6-.4 9 3-3.6 1.2-7.2 0-9-3z" fill="#6E9A7A" opacity="0.75"/>
+      <circle cx="20" cy="20" r="2.3" fill="#C0862B"/>
+    </svg>
+    <div class="date" id="date"></div>
+    <div class="hello" id="hello">Begin again, gently.</div>
+  </header>
+
+  <!-- PROMISE -->
+  <section class="promise-card">
+    <div class="promise-label">Today's one promise</div>
+    <div class="promise-text empty" id="promise" contenteditable="true" role="textbox" aria-label="Your one promise for today" spellcheck="false"></div>
+    <div class="promise-edit-hint" id="editHint"></div>
+
+    <details class="examples">
+      <summary>Need one? See a few tiny promises</summary>
+      <div class="example-list" id="exampleList"></div>
+    </details>
+
+    <div class="actions">
+      <button class="btn btn-keep" id="btnKeep">I kept it today</button>
+      <button class="btn btn-miss" id="btnMiss">Not today</button>
+    </div>
+    <div class="response" id="response"></div>
+  </section>
+
+  <!-- CHAIN -->
+  <section class="card">
+    <h2>Your chain</h2>
+    <p class="sub">Each kept promise is one link. Last 28 days.</p>
+    <div class="chain-stats">
+      <div class="stat"><div class="num zero" id="curNum">0</div><div class="cap">days now</div></div>
+      <div class="stat"><div class="num zero" id="bestNum">0</div><div class="cap">longest so far</div></div>
+    </div>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <div class="chain-note" id="chainNote">A break is not a failure — it is just a gap. The chain starts again the moment you keep the next one.</div>
+  </section>
+
+  <!-- WAVE -->
+  <section class="card">
+    <h2>When a craving comes</h2>
+    <p class="sub">The movies, the giving up, the pull. You don't have to fight it.</p>
+    <div class="wave-intro">Name it, wait ten minutes, then decide. Most waves pass on their own.</div>
+    <button class="btn-wave" id="btnWave">Watch the wave</button>
+    <div class="wave-panel" id="wavePanel">
+      <div class="wave-reframe">There's the wave again. It is a craving, not evil.<br>Sit with it for ten minutes — you don't have to obey it.</div>
+      <div class="timer" id="timer">10:00</div>
+      <div class="wave-controls">
+        <button id="timerStart">Start</button>
+        <button id="timerReset">Reset</button>
+      </div>
+      <div class="wave-done-msg" id="waveDone">The wave passed, and you were still here. That was you, choosing.</div>
+    </div>
+  </section>
+
+  <!-- DAILY LINE -->
+  <section class="line-card">
+    <p class="daily-line" id="dailyLine"></p>
+    <div class="line-src" id="lineSrc"></div>
+  </section>
+
+  <!-- MILESTONE (quiet) -->
+  <details class="milestone">
+    <summary>My weight milestones (optional)</summary>
+    <div class="card ms-body">
+      <div class="ms-row"><span id="msCurrentLabel">Now</span><span id="msGoalLabel">Goal 170</span></div>
+      <div class="ms-bar"><div class="ms-fill" id="msFill"></div></div>
+      <div class="ms-input">
+        <span>Today, if you weighed in:</span>
+        <input type="number" id="msInput" inputmode="decimal" placeholder="lbs" aria-label="Current weight in pounds">
+        <button id="msSave">Save</button>
+      </div>
+      <p class="ms-note">The scale is an outcome, not a daily promise. Check it when you like — weekly is plenty. Your real work happens up above, one kept promise at a time.</p>
+    </div>
+  </details>
+
+  <footer>
+    Saved only on this device. Add it to your home screen to visit each morning.<br>
+    The Middle Way — not indulgence, not punishment. Steady.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const KEY = "middleway.v1";
+  const $ = id => document.getElementById(id);
+
+  // ---------- state ----------
+  const defaultState = {
+    promise: "",
+    log: {},              // "YYYY-MM-DD": "kept" | "missed"
+    weightStart: 195,
+    weightGoal: 170,
+    weightNow: null
+  };
+  let state;
+  try {
+    state = Object.assign({}, defaultState, JSON.parse(localStorage.getItem(KEY) || "{}"));
+    if(!state.log || typeof state.log !== "object") state.log = {};
+  } catch(e){ state = Object.assign({}, defaultState); }
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  // ---------- dates ----------
+  function keyOf(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  const now = new Date();
+  const todayKey = keyOf(now);
+
+  // ---------- header ----------
+  $("date").textContent = now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+
+  // ---------- promise ----------
+  const promiseEl = $("promise");
+  function renderPromise(){
+    if(state.promise && state.promise.trim()){
+      promiseEl.textContent = state.promise;
+      promiseEl.classList.remove("empty");
+    } else {
+      promiseEl.textContent = "";
+      promiseEl.classList.add("empty");
+    }
+  }
+  renderPromise();
+  promiseEl.addEventListener("focus", ()=>{ if(promiseEl.classList.contains("empty")) promiseEl.classList.remove("empty"); });
+  promiseEl.addEventListener("blur", ()=>{
+    const t = promiseEl.textContent.replace(/\s+/g," ").trim();
+    state.promise = t; save(); renderPromise();
+    $("editHint").textContent = t ? "Kept for now. Change it any time — but keep just one." : "";
+    setTimeout(()=>{ $("editHint").textContent=""; }, 2600);
+  });
+  promiseEl.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); promiseEl.blur(); } });
+
+  // ---------- examples ----------
+  const EXAMPLES = [
+    "Drink one glass of water before my coffee",
+    "Walk 10 minutes after lunch",
+    "Put my shoes by the door tonight",
+    "Put the fork down between bites at dinner",
+    "Do one small task before I open any movie",
+    "Study one page before anything else"
+  ];
+  const exList = $("exampleList");
+  EXAMPLES.forEach(txt=>{
+    const b=document.createElement("button");
+    b.className="example"; b.type="button"; b.textContent=txt;
+    b.addEventListener("click", ()=>{
+      state.promise = txt; save(); renderPromise();
+      const d = promiseEl.closest("details.examples"); if(d) d.open=false;
+      $("editHint").textContent="This is your promise now. Just this one.";
+      setTimeout(()=>{ $("editHint").textContent=""; }, 2600);
+    });
+    exList.appendChild(b);
+  });
+
+  // ---------- keep / miss ----------
+  const KEEP_LINES = [
+    "One promise kept. This is exactly how trust is rebuilt — quietly, once.",
+    "You did the small thing. The small thing is the whole thing.",
+    "That's a link in the chain. Not the weight, not the money — the link. Enough for today.",
+    "You showed up for the man you actually are. Rest now."
+  ];
+  const MISS_LINE = "That was a craving, not evil. Nothing is broken. Tomorrow you keep the promise again.";
+
+  const respEl = $("response");
+  function showResponse(html){
+    respEl.innerHTML = html;
+    respEl.classList.add("show");
+    const u = respEl.querySelector(".undo");
+    if(u) u.addEventListener("click", ()=>{ delete state.log[todayKey]; save(); refreshMarks(); render(); respEl.classList.remove("show"); });
+  }
+  function refreshMarks(){
+    const s = state.log[todayKey];
+    $("btnKeep").classList.toggle("chosen", s==="kept");
+    $("btnMiss").classList.toggle("chosen", s==="missed");
+  }
+  $("btnKeep").addEventListener("click", ()=>{
+    state.log[todayKey]="kept"; save(); refreshMarks(); render();
+    const line = KEEP_LINES[computeCurrent().current % KEEP_LINES.length];
+    showResponse(line + '<br><button class="undo">undo</button>');
+  });
+  $("btnMiss").addEventListener("click", ()=>{
+    state.log[todayKey]="missed"; save(); refreshMarks(); render();
+    showResponse(MISS_LINE + '<br><button class="undo">undo</button>');
+  });
+
+  // ---------- chain math ----------
+  function computeCurrent(){
+    // forgiving of an unlogged today
+    let d = new Date(now); let count=0; let first=true;
+    while(true){
+      const k = keyOf(d); const s = state.log[k];
+      if(s==="kept"){ count++; }
+      else if(first && (s===undefined)){ /* today not logged yet: skip, don't break */ }
+      else { break; }
+      first=false;
+      d.setDate(d.getDate()-1);
+      if(count>3650) break;
+    }
+    return {current:count};
+  }
+  function computeLongest(){
+    const keys = Object.keys(state.log).filter(k=>state.log[k]==="kept").sort();
+    let best=0, run=0, prev=null;
+    keys.forEach(k=>{
+      if(prev){
+        const a=new Date(prev), b=new Date(k);
+        const diff=Math.round((b-a)/86400000);
+        run = (diff===1)? run+1 : 1;
+      } else run=1;
+      if(run>best) best=run;
+      prev=k;
+    });
+    return best;
+  }
+
+  // ---------- render chain ----------
+  function render(){
+    const cur = computeCurrent().current;
+    const best = Math.max(computeLongest(), cur);
+    const curEl=$("curNum"), bestEl=$("bestNum");
+    curEl.textContent=cur; bestEl.textContent=best;
+    curEl.classList.toggle("zero", cur===0);
+    bestEl.classList.toggle("zero", best===0);
+
+    // dots: last 28 days, oldest -> newest
+    const dots=$("dots"); dots.innerHTML="";
+    for(let i=27;i>=0;i--){
+      const d=new Date(now); d.setDate(d.getDate()-i);
+      const k=keyOf(d); const s=state.log[k];
+      const el=document.createElement("div");
+      el.className="dot"+(s==="kept"?" kept":s==="missed"?" missed":"")+(i===0?" today":"");
+      dots.appendChild(el);
+    }
+
+    // note
+    const note=$("chainNote");
+    if(cur===0){
+      note.textContent="No chain yet — and that's a fine place to stand. Keep today's promise and the first link is made.";
+    } else if(cur<7){
+      note.textContent="A "+cur+"-day chain. Small and real. Don't reach for more days — just keep tomorrow's one.";
+    } else {
+      note.textContent="A "+cur+"-day chain. You are becoming someone who keeps promises to himself. If it breaks, you simply begin again — that is allowed.";
+    }
+    renderMilestone();
+  }
+
+  // ---------- daily line ----------
+  const LINES = [
+    ["He who conquers himself is the greatest of conquerors.","the Dhammapada"],
+    ["Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.","attributed to the Buddha"],
+    ["Drop by drop is the water pot filled. Little by little, a person fills himself with good.","the Dhammapada"],
+    ["You yourself must walk the path. The awakened only point the way.","the Dhammapada"],
+    ["No indulgence, no punishment. The middle way is what set him free.","the Middle Way"],
+    ["A craving watched grows weaker. A craving fought grows stronger.","a note to yourself"],
+    ["You are worth looking after now — not after the weight, not after the money. Now.","a note to yourself"]
+  ];
+  (function setLine(){
+    const idx = (function(){ // stable per calendar day
+      const d=now; return (d.getFullYear()*372 + d.getMonth()*31 + d.getDate()) % LINES.length;
+    })();
+    $("dailyLine").textContent = "“"+LINES[idx][0]+"”";
+    $("lineSrc").textContent = "— "+LINES[idx][1];
+  })();
+
+  // ---------- wave timer ----------
+  let remaining=600, tId=null, running=false;
+  const timerEl=$("timer");
+  function fmt(s){ return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+  function paint(){ timerEl.textContent=fmt(remaining); }
+  $("btnWave").addEventListener("click", ()=>{
+    $("wavePanel").classList.toggle("open");
+    $("btnWave").textContent = $("wavePanel").classList.contains("open") ? "Hide" : "Watch the wave";
+  });
+  $("timerStart").addEventListener("click", function(){
+    if(running){ clearInterval(tId); running=false; this.textContent="Start"; return; }
+    running=true; this.textContent="Pause"; $("waveDone").classList.remove("show"); timerEl.classList.remove("done");
+    tId=setInterval(()=>{
+      remaining--; paint();
+      if(remaining<=0){
+        clearInterval(tId); running=false; $("timerStart").textContent="Start";
+        timerEl.classList.add("done"); $("waveDone").classList.add("show");
+      }
+    },1000);
+  });
+  $("timerReset").addEventListener("click", ()=>{
+    clearInterval(tId); running=false; remaining=600; paint();
+    $("timerStart").textContent="Start"; timerEl.classList.remove("done"); $("waveDone").classList.remove("show");
+  });
+  paint();
+
+  // ---------- milestone ----------
+  function renderMilestone(){
+    const start=state.weightStart, goal=state.weightGoal;
+    const nowW = (state.weightNow==null)? start : state.weightNow;
+    $("msCurrentLabel").textContent = (state.weightNow==null? "Start "+start : "Now "+nowW);
+    $("msGoalLabel").textContent = "Goal "+goal;
+    const total = Math.max(start-goal, 1);
+    const done = Math.min(Math.max(start-nowW,0), total);
+    $("msFill").style.width = Math.round(done/total*100)+"%";
+  }
+  $("msSave").addEventListener("click", ()=>{
+    const v=parseFloat($("msInput").value);
+    if(!isNaN(v) && v>0){ state.weightNow=v; save(); renderMilestone(); $("msInput").value=""; }
+  });
+
+  // ---------- init ----------
+  refreshMarks();
+  render();
+  if(state.log[todayKey]==="kept") showResponse("Already kept today. Good. Come back tomorrow — that's all that's asked.");
+  else if(state.log[todayKey]==="missed") showResponse(MISS_LINE);
+})();
+</script>
+</body>
+</html>
